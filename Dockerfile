@@ -1,9 +1,20 @@
 FROM openjdk:17.0.1-jdk-slim
 
-ARG JAR_FILE=build/libs/*SNAPSHOT.jar
+ENV POSTGRES_DSN=postgresql://postgres:password@db/postgres
+ENV POSTGRES_SERVER=db
+ENV POSTGRES_PORT=5432
+ENV POSTGRES_DB=postgres
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=password
 
 WORKDIR /opt/app
 
-COPY ${JAR_FILE} yandex-lavka.jar
+COPY build.gradle gradlew gradlew.bat settings.gradle ./
+COPY gradle gradle
+COPY src src
 
-ENTRYPOINT ["java","-jar","yandex-lavka.jar"]
+RUN ./gradlew build -x test && cp build/libs/*SNAPSHOT.jar yandex-lavka.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "yandex-lavka.jar"]
